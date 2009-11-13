@@ -1,10 +1,8 @@
-#!/usr/bin/env ruby
-
 require 'inotify'
 require 'find'
 require 'thread'
 
-class WatchedDirecty
+class Ahp
 attr_accessor :i
 def initialize root_path
 @DIRS={}
