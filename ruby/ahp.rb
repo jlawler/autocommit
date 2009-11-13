@@ -84,9 +84,3 @@ end
 
 
 
-raise("Specify a directory") if !ARGV[0]
-
-x = WatchedDirecty.new ARGV[0]
-t = x.run
-
-t.join
