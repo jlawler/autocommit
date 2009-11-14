@@ -10,18 +10,12 @@ class AhpIpc
     @@pidfile||=Daemons::PidFile.new(AH_DIR, 'ahn')
   end
   def self.daemon_running?
-    puts (self.pidfile.methods - Object.new.methods).sort.inspect
-    puts "pidfile!"
+#    puts (self.pidfile.methods - Object.new.methods).sort.inspect
+#    puts "pidfile!"
     pf = Daemons::PidFile.existing(Daemons::PidFile.find_files(AH_DIR,'ahn').first) rescue nil
-puts "AI 1"
     return false if pf.nil?
-puts "AI 2"
     return false unless  pf.filename and pf.exist?
-puts "AI 3"
-  puts pf.pid.to_i.inspect
      return true if  Daemons::Pid.running?(pf.pid.to_i)
-puts "PID NOT RUNNING"
-      puts pf.pid.inspect
       pf.cleanup 
       return false
   end
