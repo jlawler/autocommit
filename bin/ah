@@ -32,7 +32,7 @@ error||= "Usage : ah cmd dir" if ARGV.size < 2 and not argv_cmd=='shutdown'
 
 error||="Invalid command #{argv_cmd}" unless ['shutdown','start','stop','pause','create'].include? argv_cmd
 error||="path doesn't exist! #{path}" if 
-  path.nil? or ((path = File.expand_path(path)) and not File.exists?(path))
+  path and ((path = File.expand_path(path)) and not File.exists?(path))
 
 if error
   STDERR.puts error
