@@ -1,23 +1,18 @@
-
-require 'daemons/pidfile'
+require 'ahp_pidfile'
 
 class AhpIpc
   AH_DIR = File.join(ENV['HOME'],'autohistory')
+  def self.pidfile_path
+    File.join AH_DIR,'ahp.pid'
+  end
   def self.control_path
     File.join(AH_DIR,'control')
   end
   def self.pidfile
-    @@pidfile||=Daemons::PidFile.new(AH_DIR, 'ahn')
+    @@pidfile||=AhpPidFile.new(pidfile_path)
   end
   def self.daemon_running?
-#    puts (self.pidfile.methods - Object.new.methods).sort.inspect
-#    puts "pidfile!"
-    pf = Daemons::PidFile.existing(Daemons::PidFile.find_files(AH_DIR,'ahn').first) rescue nil
-    return false if pf.nil?
-    return false unless  pf.filename and pf.exist?
-     return true if  Daemons::Pid.running?(pf.pid.to_i)
-      pf.cleanup 
-      return false
+    pidfile.running?
   end
   def self.start_daemon!
     self.pidfile.pid=$$
