@@ -1,10 +1,26 @@
 #!/usr/bin/env ruby
+
 $:.unshift File.expand_path File.join(File.dirname(__FILE__),'../ruby')
 require 'ahp'
+require 'ahp_ipc'
+AhpIpc.daemon_running? or fork do 
+  AhpIpc.start_daemon!
+  Kernel.exit!
+end
+if ARGV.size < 2
+  STDERR.puts "Usage : ah cmd dir"
+  Kernel.exit!
+end
+cmd = ARGV.shift.downcase
+unless ['start','stop','pause','create'].include? cmd
+  STDERR.puts "Invalid command " + cmd
+  Kernel.exit
+end
+path = ARGV.shift
+if path.nil? or ((path = File.expand_path(path)) and not File.exists?(path))
+  STDERR.puts "path doesn't exist! #{path}"
+  Kernel.exit
+end
 
-raise("Specify a directory") if !ARGV[0]
+AhpIpc.write_command cmd, path
 
-x = Ahp.new ARGV[0]
-t = x.run
-
-t.join
