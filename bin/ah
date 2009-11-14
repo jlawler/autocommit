@@ -6,9 +6,11 @@ require 'ahp_ipc'
 Thread.abort_on_exception=true
 argv_cmd = ARGV.first.downcase if ARGV.size > 0
 path = ARGV[1]
+
+(ARGV.size==1 and argv_cmd!='shutdown') or AhpIpc.daemon_running? or 
+  fork {AhpIpc.start_daemon!}
+
 if ARGV.size==1
-  argv_cmd=='shutdown'or AhpIpc.daemon_running? or 
-    fork {AhpIpc.start_daemon!}
   if argv_cmd=='status'
     msg=''
     msg << "Auto-commit daemon running" if AhpIpc.daemon_running?
@@ -25,18 +27,16 @@ if ARGV.size==1
     Kernel.exit!
   end
 end
-if ARGV.size < 2
-  STDERR.puts "Usage : ah cmd dir"
-  Kernel.exit
-end
-unless ['shutdown','start','stop','pause','create'].include? argv_cmd
-  STDERR.puts "Invalid command " + argv_cmd
-  Kernel.exit
-end
-if path.nil? or ((path = File.expand_path(path)) and not File.exists?(path))
-  STDERR.puts "path doesn't exist! #{path}"
-  Kernel.exit
-end
+error=nil
+error||= "Usage : ah cmd dir" if ARGV.size < 2 and not argv_cmd=='shutdown'
 
+error||="Invalid command #{argv_cmd}" unless ['shutdown','start','stop','pause','create'].include? argv_cmd
+error||="path doesn't exist! #{path}" if 
+  path.nil? or ((path = File.expand_path(path)) and not File.exists?(path))
+
+if error
+  STDERR.puts error
+  Kernel.exit
+end
 AhpIpc.write_command argv_cmd, path
 

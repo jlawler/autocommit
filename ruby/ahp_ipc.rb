@@ -2,10 +2,10 @@ require 'ahp_pidfile'
 require 'yaml'
 
 class AhpIpc
-  SCOREBOARD={}
+  SCOREBOARD=Hash.new { next({}); }
   AH_DIR = File.join(ENV['HOME'],'autohistory')
   def self.pidfile_path
-    File.join AH_DIR,'ahp.pid'
+    File.join(AH_DIR,'ahp.pid')
   end
   def self.scoreboard_path
     File.join(AH_DIR,'scoreboard')
@@ -26,50 +26,26 @@ class AhpIpc
     self.start_loop!
   end
   def self.start_loop!
-while ary = AhpIpc.get_command
-  cmd,path = *ary
-  case cmd.downcase
-  when 'shutdown'
-    Kernel.exit
-  when 'pause'
-    unless AhpHash[path]
-      puts path + " isn't running"
-    else
-      puts "fake pause " + path
+    while ary = AhpIpc.get_command
+      cmd,path = *ary
+      case cmd.downcase
+      when 'shutdown'
+        Kernel.exit
+      when 'create'
+        `cd #{path} && git init` unless File.exists?(File.join(path,'.git'))
+        Ahp.new(path).run
+      when 'start'
+        if File.exists?(path) and File.exists?(File.join(path,'.git'))
+          next Ahp.new(path).run
+        end
+        puts path + " doesn't exist or doesn't have a .git dir"
+      end 
     end
-  when 'stop'
-    unless AhpHash[path]
-      puts path + " isn't running"
-    else
-      puts "fake stop " + path
-    end
-  when 'create'
-    unless File.exists?(File.join(path,'.git'))
-      `cd #{path} && git init`
-    end
-    Ahp.new(path).run
-  when 'start'
-    unless File.exists?(path)
-      puts path + " doesn't exist"
-      next
-    end
-    unless File.exists?(File.join(path,'.git'))
-      puts "No git dir!"
-      next
-    end
-    Ahp.new(path).run
-
-  end 
-end
-end
+  end
   def self.create_files!
     Dir.mkdir(AH_DIR) unless File.exists?(AH_DIR)
-    unless File.exists?(control_path)
-      `mkfifo #{control_path}`
-    end  
-    unless File.exists?(control_path)
-      raise "Totally screwed!"
-    end
+    `mkfifo #{control_path}` unless File.exists?(control_path)
+    raise "Totally screwed!" unless File.exists?(control_path)
   end
   def self.write_command cmd,path
     @@output||= open(control_path, "w+") # the r+ means we don't block
@@ -88,14 +64,13 @@ end
   end
   def self.add_stat(path,hsh)
     raise "#{hsh.class.name} #{hsh.inspect} IS NOT A HASH" unless Hash===hsh
-    SCOREBOARD[path]||={}
     SCOREBOARD[path].merge!(hsh)
     update_scoreboard_file
   end
-def self.debug str
-  return unless ENV['DEBUG']
-  puts str
-end
+  def self.debug str
+   return unless ENV['DEBUG']
+   puts str
+  end
 
   def self.update_scoreboard_file
     debug "WRITING SCOREBOARD " + self.scoreboard_path
@@ -112,7 +87,4 @@ end
       fh.puts YAML::dump(SCOREBOARD)
     }
   end
-
 end
-
-

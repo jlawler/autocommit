@@ -8,12 +8,10 @@ class AhpPidFile
   end 
   def pid
     pid = File.read(path).split("\n").first.to_i rescue nil
-
     return pid if Numeric===pid and pid>0
-    return nil
   end
   def running?
-    return false if pid.nil?
+    return false unless pid
     # Check if process is in existence
     # The simplest way to do this is to send signal '0'
     # (which is a single system call) that doesn't actually
@@ -27,5 +25,4 @@ class AhpPidFile
       return true
     end
   end
-
 end
