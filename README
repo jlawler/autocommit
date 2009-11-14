@@ -1,13 +1,10 @@
 libinotify-ruby
-libdaemons-ruby1.8
-git
-
-should be all that's necessary.
-No autostarting clients
-the spacing is fucked up because I moved code around at the end.
-I told you not to look at this yet.  Damn you.
+libdaemons-ruby1.8 (removed this dependency.  libdaemons is worthless)
+git-core
 
 
+
+Syntax:
 
 ./bin/ah create PATH_WITHOUT_A_GIT_REPO 
 (this will do a git init on that directory)
@@ -15,4 +12,28 @@ or
 
 ./bin/ah start PATH_WITHOUT_A_GIT_REPO 
 to make it start auto-commiting in an existing repo
+
+./bin/ah status
+will list any directories it's currently active for, and
+when the last time it auto-committed.
+
+
+
+When you run either of those commands, it will create a ~/.autocommit directory
+and it will use inotify so whenever you write to the diredtory (or any 
+subdirectories) it will do a git commit.  There's some code strubbed for
+rate-limiting, but that never got implemented.
+
+The one thing this is sorely missing is a "if I haven't committed in N seconds,
+try to commit anyway" but theoretically it shouldn't need it.
+
+I also want to add a config file so you can specify what files it ignores. (IE,
+changes to the .git directory shouldn't cause you to try to auto-commit to git.
+infinite recursion is bad)
+
+Also, if the git commits ever fail in some weird way, like because you were trying
+to do a git command when it tries to, it won't notice, it will keep auto-running
+commands.  (Considering these are just 'git add -A && git commit' I'm not too 
+worried.  Git is pretty crazy over-engineered.  You have to do a lot of work to
+make it actually let you corrupt the repo.
 
