@@ -1,0 +1,9 @@
+libinotify-ruby
+libdaemons-ruby1.8
+git
+
+should be all that's necessary.
+No autostarting clients
+the spacing is fucked up because I moved code around at the end.
+I told you not to look at this yet.  Damn you.
+
