@@ -10,7 +10,6 @@ if ARGV.size==1 and ARGV.first.downcase=='shutdown'
   Kernel.exit!
 end
 AhpIpc.daemon_running? or fork do
-STDERR.puts "STARTING NEW DAEMON" 
   AhpIpc.start_daemon!
   Kernel.exit!
 end
