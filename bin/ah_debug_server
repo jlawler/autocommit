@@ -3,6 +3,7 @@ $:.unshift File.expand_path File.join(File.dirname(__FILE__),'../ruby')
 require 'ahp'
 require 'ahp_ipc'
 
+Thread.abort_on_exception=true
 AhpHash={}
 
 if AhpIpc.daemon_running?

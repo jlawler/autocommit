@@ -1,9 +1,11 @@
 require 'inotify'
 require 'find'
 require 'thread'
+require 'ahp_scoreboard'
 
 class Ahp
 MIN_TIME_BETWEEN_COMITS = 10
+MAX_TIME_BETWEEN_COMITS = 60
 @@all_ahps={}
 attr_accessor :i,:root_path, :last_child, :last_commit
 def initialize root_path
@@ -26,10 +28,13 @@ end
 end
 def run
 @@all_ahps[self.root_path]=self
+AhpIpc.add_stat(self.root_path,{'start' => Time.now.to_i})
 Thread.new do
 	i.each_event do |ev|
     path = nil
-    Thread.exclusive do 
+    Thread.exclusive do
+    STDERR.puts "wd,name :   " + [ev.wd,ev.name].inspect
+    STDERR.puts "DIRS[ev.wd] " +  @DIRS[ev.wd].inspect
     if @DIRS[ev.wd] and ev.name
       path = File.join(@DIRS[ev.wd],ev.name) 
     else
@@ -44,8 +49,8 @@ Thread.new do
     if self.last_commit.nil? or Time.now.to_i - self.last_commit   >= MIN_TIME_BETWEEN_COMITS
       self.commit!
     end
-    if ev.mask & 256 != 0 
-      debug "CREATE " + ev.name.inspect
+    if ev.mask & Inotify::CREATE != 0 
+      debug "CREATE " + (ev.mask ^ Inotify::CREATE).to_s + " " +  ev.name.inspect
       add_watch path
     elsif ev.mask & Inotify::DELETE != 0 
       debug "DELETE" 
@@ -55,11 +60,12 @@ Thread.new do
 end
 end
 def commit!
-  STDERR.puts "IN COMMIT THREAD!"
+  debug "IN COMMIT THREAD!"
   Thread.exclusive do
     `cd #{self.root_path} && git add -A && git commit -m autocommit`
     self.last_commit = Time.now.to_i  
     self.last_child = $?
+    AhpIpc.add_stat(self.root_path,{'last_commit' => self.last_commit})
     end
   end
 def debug str
@@ -68,10 +74,14 @@ def debug str
 end
 def add_watch e
   debug "add watch #{e}"
+  begin
   if File.directory? e
-    add_file e
-  else
     add_dir e
+  else
+    add_file e
+  end
+  rescue Exception => e
+    debug ["Failed to add watch",e.message,e.class.name,*e.backtrace].join("\n")
   end
 end
 
@@ -98,4 +108,4 @@ end
 
 
 
-
+puts "DEBUGGING ENABLED" if ENV['DEBUG']

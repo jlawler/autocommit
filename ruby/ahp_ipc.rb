@@ -1,9 +1,14 @@
 require 'ahp_pidfile'
+require 'yaml'
 
 class AhpIpc
+  SCOREBOARD={}
   AH_DIR = File.join(ENV['HOME'],'autohistory')
   def self.pidfile_path
     File.join AH_DIR,'ahp.pid'
+  end
+  def self.scoreboard_path
+    File.join(AH_DIR,'scoreboard')
   end
   def self.control_path
     File.join(AH_DIR,'control')
@@ -16,12 +21,16 @@ class AhpIpc
   end
   def self.start_daemon!
     self.pidfile.pid=$$
+    update_scoreboard_file
     self.start_loop!
   end
   def self.start_loop!
 while ary = AhpIpc.get_command
   cmd,path = *ary
+  STDERR.puts "COMMAND = "+cmd
   case cmd.downcase
+  when 'shutdown'
+    Kernel.exit
   when 'pause'
     unless AhpHash[path]
       puts path + " isn't running"
@@ -93,6 +102,7 @@ end
   def self.write_command cmd,path
     @@output||= open(control_path, "w+") # the r+ means we don't block
     @@output.puts [cmd,path].join(':')
+    @@output.flush
   end
   def self.input
     @@input||= open(control_path, "r+") # the r+ means we don't block
@@ -104,6 +114,33 @@ end
     cmd,path=$1,$2
     return [cmd,path]
   end
+  def self.add_stat(path,hsh)
+    raise "#{hsh.class.name} #{hsh.inspect} IS NOT A HASH" unless Hash===hsh
+    SCOREBOARD[path]||={}
+    SCOREBOARD[path].merge!(hsh)
+    update_scoreboard_file
+  end
+def self.debug str
+  return unless ENV['DEBUG']
+  puts str
+end
+
+  def self.update_scoreboard_file
+    debug "WRITING SCOREBOARD " + self.scoreboard_path
+    File.open(self.scoreboard_path, File::WRONLY|File::TRUNC|File::CREAT){|fh|
+      fh.puts YAML::dump(SCOREBOARD)
+    }
+  end
+  def self.read_scoreboard_file
+    return {} unless self.daemon_running? 
+    return YAML::load(File.read(self.scoreboard_path)) rescue nil
+    return {} 
+    debug "WRITING SCOREBOARD " + self.scoreboard_path
+    File.open(self.scoreboard_path, File::WRONLY|File::TRUNC|File::CREAT){|fh|
+      fh.puts YAML::dump(SCOREBOARD)
+    }
+  end
+
 end
 
 

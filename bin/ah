@@ -3,8 +3,35 @@
 $:.unshift File.expand_path File.join(File.dirname(__FILE__),'../ruby')
 require 'ahp'
 require 'ahp_ipc'
-AhpIpc.daemon_running? or fork do 
+Thread.abort_on_exception=true
+
+if ARGV.size==1 and ARGV.first.downcase=='shutdown'
+  AhpIpc.write_command 'shutdown',''
+  Kernel.exit!
+end
+AhpIpc.daemon_running? or fork do
+STDERR.puts "STARTING NEW DAEMON" 
   AhpIpc.start_daemon!
+  Kernel.exit!
+end
+
+if ARGV.size==1 and ARGV.first.downcase=='status'
+  require 'pp'
+  if AhpIpc.daemon_running?
+    puts "Auto-commit daemon running"
+  end
+  sb = AhpIpc.read_scoreboard_file
+  sb.keys.sort.each do |dir_name|v = sb[dir_name]
+    time_blk=nil
+    if v['last_commit']
+      lc = Time.now.to_i - v['last_commit']
+      time_blk = "last autocommit %is" % [lc]
+    else
+      time_blk = "  no autocommits"
+    end
+    puts ("%40s    " % dir_name) + time_blk
+    
+  end
   Kernel.exit!
 end
 if ARGV.size < 2
