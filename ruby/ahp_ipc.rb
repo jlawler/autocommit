@@ -3,7 +3,7 @@ require 'yaml'
 
 class AhpIpc
   SCOREBOARD=Hash.new { next({}); }
-  AH_DIR = File.join(ENV['HOME'],'autohistory')
+  AH_DIR = File.join(ENV['HOME'],'.autohistory')
   def self.pidfile_path
     File.join(AH_DIR,'ahp.pid')
   end
@@ -43,9 +43,9 @@ class AhpIpc
     end
   end
   def self.create_files!
-    Dir.mkdir(AH_DIR) unless File.exists?(AH_DIR)
-    `mkfifo #{control_path}` unless File.exists?(control_path)
-    raise "Totally screwed!" unless File.exists?(control_path)
+    Dir.mkdir(AH_DIR) unless File.exists?(AH_DIR) rescue nil
+    `mkfifo #{control_path}` unless File.exists?(control_path) rescue nil
+    raise "Totally screwed!  Can't create the dirs/files I need! #{control_path}" unless File.exists?(control_path)
   end
   def self.write_command cmd,path
     @@output||= open(control_path, "w+") # the r+ means we don't block
