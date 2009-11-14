@@ -4,49 +4,39 @@ $:.unshift File.expand_path File.join(File.dirname(__FILE__),'../ruby')
 require 'ahp'
 require 'ahp_ipc'
 Thread.abort_on_exception=true
-
-if ARGV.size==1 and ARGV.first.downcase=='shutdown'
-  AhpIpc.write_command 'shutdown',''
-  Kernel.exit!
-end
-AhpIpc.daemon_running? or fork do
-  AhpIpc.start_daemon!
-  Kernel.exit!
-end
-
-if ARGV.size==1 and ARGV.first.downcase=='status'
-  require 'pp'
-  if AhpIpc.daemon_running?
-    puts "Auto-commit daemon running"
-  end
-  sb = AhpIpc.read_scoreboard_file
-  sb.keys.sort.each do |dir_name|v = sb[dir_name]
-    time_blk=nil
-    if v['last_commit']
-      lc = Time.now.to_i - v['last_commit']
-      time_blk = "last autocommit %is" % [lc]
-    else
+argv_cmd = ARGV.first.downcase if ARGV.size > 0
+path = ARGV[1]
+if ARGV.size==1
+  argv_cmd=='shutdown'or AhpIpc.daemon_running? or 
+    fork {AhpIpc.start_daemon!}
+  if argv_cmd=='status'
+    msg=''
+    msg << "Auto-commit daemon running" if AhpIpc.daemon_running?
+    sb = AhpIpc.read_scoreboard_file
+    sb.keys.sort.each do |dir_name|v = sb[dir_name]
       time_blk = "  no autocommits"
+      if lc_ts = v['last_commit']
+        lc = Time.now.to_i - lc_ts
+        time_blk = "last autocommit %is" % [lc]
+      end
+      msg << ("%40s    " % dir_name) + time_blk
     end
-    puts ("%40s    " % dir_name) + time_blk
-    
+    puts msg
+    Kernel.exit!
   end
-  Kernel.exit!
 end
 if ARGV.size < 2
   STDERR.puts "Usage : ah cmd dir"
-  Kernel.exit!
-end
-cmd = ARGV.shift.downcase
-unless ['start','stop','pause','create'].include? cmd
-  STDERR.puts "Invalid command " + cmd
   Kernel.exit
 end
-path = ARGV.shift
+unless ['shutdown','start','stop','pause','create'].include? argv_cmd
+  STDERR.puts "Invalid command " + argv_cmd
+  Kernel.exit
+end
 if path.nil? or ((path = File.expand_path(path)) and not File.exists?(path))
   STDERR.puts "path doesn't exist! #{path}"
   Kernel.exit
 end
 
-AhpIpc.write_command cmd, path
+AhpIpc.write_command argv_cmd, path
 
