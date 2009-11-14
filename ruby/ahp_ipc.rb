@@ -42,6 +42,7 @@ class AhpIpc
         puts path + " doesn't exist or doesn't have a .git dir"
       end 
     end
+    STDERR.puts "start_loop is about to exit!  get_command returned " + ary.inspect
   end
   def self.create_files!
     Dir.mkdir(AH_DIR) unless File.exists?(AH_DIR) rescue nil
@@ -58,7 +59,7 @@ class AhpIpc
   end
 
   def self.get_command
-    while cmd_string = input.gets
+    while cmd_string = input.gets or true
       if cmd_string=~/^([^:]+):(.*)$/
         cmd,path=$1,$2
         return [cmd,path]
