@@ -1,22 +1,26 @@
 #!/usr/bin/env ruby
-history_dir = File.join(ENV['HOME'],'autohistory')
-control_path = File.join(history_dir,'control')
-STDERR.puts history_dir.inspect
-STDERR.puts control_path.inspect
-Dir.mkdir(history_dir) unless File.exists?(history_dir)
-unless File.exists?(control_path)
-  `mkfifo #{control_path}`
-end  
-unless File.exists?(control_path)
-  puts "Totally screwed!"
+
+$:.unshift File.expand_path File.join(File.dirname(__FILE__),'../ruby')
+require 'ahp'
+require 'ahp_ipc'
+AhpIpc.daemon_running? or begin
+  puts "FUCK, NO DAEMON"
+  Kernel.exit!
+end
+if ARGV.size < 2
+  STDERR.puts "Usage : ah cmd dir"
+  Kernel.exit!
+end
+cmd = ARGV.shift.downcase
+unless ['start','stop','pause'].include? cmd
+  STDERR.puts "Invalid command " + cmd
+  Kernel.exit
+end
+path = ARGV.shift
+if path.nil? or ((path = File.expand_path(path)) and not File.exists?(path))
+  STDERR.puts "path doesn't exist! #{path}"
+  Kernel.exit
 end
 
-
-input = open(control_path, "r+") # the r+ means we don't block
-while cmd_string = input.gets
-  cmd_string=~/^([^:]+):(.*)$/
-  cmd,path=$1,$2
-  puts [cmd,path].inspect 
-end
-
+AhpIpc.write_command cmd, path
 
