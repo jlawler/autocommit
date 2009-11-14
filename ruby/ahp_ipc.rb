@@ -21,7 +21,46 @@ class AhpIpc
   end
   def self.start_daemon!
     self.pidfile.pid=$$
+    self.start_loop!
   end
+  def self.start_loop!
+while ary = AhpIpc.get_command
+  cmd,path = *ary
+  case cmd.downcase
+  when 'pause'
+    unless AhpHash[path]
+      puts path + " isn't running"
+    else
+      puts "fake pause " + path
+    end
+  when 'stop'
+    unless AhpHash[path]
+      puts path + " isn't running"
+    else
+      puts "fake stop " + path
+    end
+  when 'create'
+    unless File.exists?(File.join(path,'.git'))
+      `cd #{path} && git init`
+    end
+    Ahp.new(path).run
+  when 'start'
+    unless File.exists?(path)
+      puts path + " doesn't exist"
+      next
+    end
+    unless File.exists?(File.join(path,'.git'))
+      puts "No git dir!"
+      next
+    end
+    Ahp.new(path).run
+    puts "fake start " + path
+
+  end 
+  puts [cmd,path].inspect
+end
+end
+
 =begin
     def Pid.running?(pid)
       # Check if process is in existence

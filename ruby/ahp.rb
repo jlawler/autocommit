@@ -3,8 +3,11 @@ require 'find'
 require 'thread'
 
 class Ahp
-attr_accessor :i
+MIN_TIME_BETWEEN_COMITS = 10
+@@all_ahps={}
+attr_accessor :i,:root_path, :last_child, :last_commit
 def initialize root_path
+  self.root_path = root_path
 @DIRS={}
 self.i = Inotify.new
 Find.find(root_path) do |e| 
@@ -22,6 +25,7 @@ end
 
 end
 def run
+@@all_ahps[self.root_path]=self
 Thread.new do
 	i.each_event do |ev|
     path = nil
@@ -37,6 +41,9 @@ Thread.new do
       debug "INGORING!" + [ev.mask,Inotify::IGNORED,ev.mask & Inotify::IGNORED].inspect
     next 
     end
+    if self.last_commit.nil? or Time.now.to_i - self.last_commit   >= MIN_TIME_BETWEEN_COMITS
+      self.commit!
+    end
     if ev.mask & 256 != 0 
       debug "CREATE " + ev.name.inspect
       add_watch path
@@ -47,6 +54,14 @@ Thread.new do
 	end
 end
 end
+def commit!
+  STDERR.puts "IN COMMIT THREAD!"
+  Thread.exclusive do
+    `cd #{self.root_path} && git add -A && git commit -m autocommit`
+    self.last_commit = Time.now.to_i  
+    self.last_child = $?
+    end
+  end
 def debug str
   return unless ENV['DEBUG']
   puts str
