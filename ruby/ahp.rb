@@ -1,8 +1,8 @@
 require 'inotify'
 require 'find'
 require 'thread'
-require 'ahp_scoreboard'
 
+puts "DEBUGGING ENABLED" if ENV['DEBUG']
 class Ahp
 MIN_TIME_BETWEEN_COMITS = 10
 MAX_TIME_BETWEEN_COMITS = 60
@@ -33,8 +33,6 @@ Thread.new do
 	i.each_event do |ev|
     path = nil
     Thread.exclusive do
-    STDERR.puts "wd,name :   " + [ev.wd,ev.name].inspect
-    STDERR.puts "DIRS[ev.wd] " +  @DIRS[ev.wd].inspect
     if @DIRS[ev.wd] and ev.name
       path = File.join(@DIRS[ev.wd],ev.name) 
     else
@@ -108,4 +106,3 @@ end
 
 
 
-puts "DEBUGGING ENABLED" if ENV['DEBUG']
