@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+$:.unshift File.expand_path File.join(File.dirname(__FILE__),'../ruby')
+require 'ahp'
+
+raise("Specify a directory") if !ARGV[0]
+
+x = Ahp.new ARGV[0]
+t = x.run
+
+t.join

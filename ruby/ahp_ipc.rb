@@ -1,0 +1,81 @@
+
+require 'daemons/pidfile'
+
+class AhpIpc
+  AH_DIR = File.join(ENV['HOME'],'autohistory')
+  def self.control_path
+    File.join(AH_DIR,'control')
+  end
+  def self.pidfile
+    @@pidfile||=Daemons::PidFile.new(AH_DIR, 'ahn')
+  end
+  def self.daemon_running?
+    puts (self.pidfile.methods - Object.new.methods).sort.inspect
+    puts "pidfile!"
+    pf = Daemons::PidFile.existing(Daemons::PidFile.find_files(AH_DIR,'ahn').first) rescue nil
+puts "AI 1"
+    return false if pf.nil?
+puts "AI 2"
+    return false unless  pf.filename and pf.exist?
+puts "AI 3"
+  puts pf.pid.to_i.inspect
+     return true if  Daemons::Pid.running?(pf.pid.to_i)
+puts "PID NOT RUNNING"
+      puts pf.pid.inspect
+      pf.cleanup 
+      return false
+  end
+  def self.start_daemon!
+    self.pidfile.pid=$$
+  end
+=begin
+    def Pid.running?(pid)
+      # Check if process is in existence
+      # The simplest way to do this is to send signal '0'
+      # (which is a single system call) that doesn't actually
+      # send a signal
+      begin
+        Process.kill(0, pid)
+        return true
+      rescue Errno::ESRCH
+        return false
+      rescue ::Exception   # for example on EPERM (process exists but does not belong to us)
+        return true
+      #rescue Errno::EPERM
+      #  return false
+      end
+    end
+
+
+  end
+=end
+#STDERR.puts history_dir.inspect
+#STDERR.puts control_path.inspect
+  def self.create_files
+    Dir.mkdir(history_dir) unless File.exists?(history_dir)
+    unless File.exists?(control_path)
+      `mkfifo #{control_path}`
+    end  
+  end
+  def self.sanity_check!
+    unless File.exists?(control_path)
+      raise "Totally screwed!"
+    end
+  end
+  def self.write_command cmd,path
+    @@output||= open(control_path, "w+") # the r+ means we don't block
+    @@output.puts [cmd,path].join(':')
+  end
+  def self.input
+    @@input||= open(control_path, "r+") # the r+ means we don't block
+  end
+
+  def self.get_command
+    cmd_string = input.gets
+    cmd_string=~/^([^:]+):(.*)$/
+    cmd,path=$1,$2
+    return [cmd,path]
+  end
+end
+
+
