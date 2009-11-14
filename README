@@ -7,3 +7,12 @@ No autostarting clients
 the spacing is fucked up because I moved code around at the end.
 I told you not to look at this yet.  Damn you.
 
+
+
+./bin/ah create PATH_WITHOUT_A_GIT_REPO 
+(this will do a git init on that directory)
+or
+
+./bin/ah start PATH_WITHOUT_A_GIT_REPO 
+to make it start auto-commiting in an existing repo
+
