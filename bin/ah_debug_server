@@ -4,7 +4,6 @@ require 'ahp'
 require 'ahp_ipc'
 
 Thread.abort_on_exception=true
-AhpHash={}
 
 if AhpIpc.daemon_running?
   STDERR.puts "Already a daemon running..."
