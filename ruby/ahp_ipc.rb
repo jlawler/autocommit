@@ -30,6 +30,7 @@ class AhpIpc
       cmd,path = *ary
       case cmd.downcase
       when 'shutdown'
+        debug "Received shutdown command, shutting down..."
         Kernel.exit
       when 'create'
         `cd #{path} && git init` unless File.exists?(File.join(path,'.git'))
