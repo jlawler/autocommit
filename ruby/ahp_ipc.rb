@@ -57,10 +57,14 @@ class AhpIpc
   end
 
   def self.get_command
-    cmd_string = input.gets
-    cmd_string=~/^([^:]+):(.*)$/
-    cmd,path=$1,$2
-    return [cmd,path]
+    while cmd_string = input.gets
+      if cmd_string=~/^([^:]+):(.*)$/
+        cmd,path=$1,$2
+        return [cmd,path]
+      else
+        STDERR.puts "Couldn't parse command "+cmd_string.inspect
+      end
+    end
   end
   def self.add_stat(path,hsh)
     raise "#{hsh.class.name} #{hsh.inspect} IS NOT A HASH" unless Hash===hsh
