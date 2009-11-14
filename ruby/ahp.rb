@@ -4,8 +4,8 @@ require 'thread'
 
 puts "DEBUGGING ENABLED" if ENV['DEBUG']
 class Ahp
-  MIN_TIME_BETWEEN_COMITS = 10
-  MAX_TIME_BETWEEN_COMITS = 60
+  MIN_TIME_BETWEEN_COMMITS = 10
+  MAX_TIME_BETWEEN_COMMITS = 60
   @@all_ahps={}
   attr_accessor :i,:root_path, :last_child, :last_commit
   def initialize root_path
@@ -32,20 +32,25 @@ class Ahp
     	i.each_event do |ev|
         path = nil
         Thread.exclusive do
-        if @DIRS[ev.wd] and ev.name
-          path = File.join(@DIRS[ev.wd],ev.name) 
-        else
-          path = @DIRS[ev.wd] || ev.name
-        end
+          if @DIRS[ev.wd] and ev.name
+            path = File.join(@DIRS[ev.wd],ev.name) 
+          else
+            path = @DIRS[ev.wd] || ev.name
+          end
         end
         debug ev.mask
         if ev.mask & Inotify::IGNORED != 0
           debug "INGORING!" + [ev.mask,Inotify::IGNORED,ev.mask & Inotify::IGNORED].inspect
-        next 
+          next 
         end
-        if self.last_commit.nil? or Time.now.to_i - self.last_commit   >= MIN_TIME_BETWEEN_COMITS
-          self.commit!
-        end
+        #Killing rate limiting until I write a callback to pick this up...  Otherwise
+        #you have a couple of changes that never get committed and make you waste
+        #time debugging problems that aren't there...
+        #FIXME TODO: Make this commit conditional, and also start some countdown clock
+        #for the "max_wait_between_commits" clock.
+        #if self.last_commit.nil? or Time.now.to_i - self.last_commit >= MIN_TIME_BETWEEN_COMMITS
+        self.commit!
+        #end
         if ev.mask & Inotify::CREATE != 0 
           debug "CREATE " + (ev.mask ^ Inotify::CREATE).to_s + " " +  ev.name.inspect
           add_watch path

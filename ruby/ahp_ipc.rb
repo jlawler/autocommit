@@ -2,7 +2,7 @@ require 'ahp_pidfile'
 require 'yaml'
 
 class AhpIpc
-  SCOREBOARD=Hash.new { next({}); }
+  SCOREBOARD=Hash.new{|h,k|h[k]=Hash.new}
   AH_DIR = File.join(ENV['HOME'],'.autocommit')
   def self.pidfile_path
     File.join(AH_DIR,'ahp.pid')
@@ -65,6 +65,7 @@ class AhpIpc
   def self.add_stat(path,hsh)
     raise "#{hsh.class.name} #{hsh.inspect} IS NOT A HASH" unless Hash===hsh
     SCOREBOARD[path].merge!(hsh)
+    debug SCOREBOARD.inspect
     update_scoreboard_file
   end
   def self.debug str
