@@ -3,7 +3,7 @@ require 'yaml'
 
 class AhpIpc
   SCOREBOARD=Hash.new { next({}); }
-  AH_DIR = File.join(ENV['HOME'],'.autohistory')
+  AH_DIR = File.join(ENV['HOME'],'.autocommit')
   def self.pidfile_path
     File.join(AH_DIR,'ahp.pid')
   end
