@@ -3,8 +3,8 @@
 $:.unshift File.expand_path File.join(File.dirname(__FILE__),'../ruby')
 require 'ahp'
 require 'ahp_ipc'
-AhpIpc.daemon_running? or begin
-  puts "FUCK, NO DAEMON"
+AhpIpc.daemon_running? or fork do 
+  AhpIpc.start_daemon!
   Kernel.exit!
 end
 if ARGV.size < 2
@@ -12,7 +12,7 @@ if ARGV.size < 2
   Kernel.exit!
 end
 cmd = ARGV.shift.downcase
-unless ['start','stop','pause'].include? cmd
+unless ['start','stop','pause','create'].include? cmd
   STDERR.puts "Invalid command " + cmd
   Kernel.exit
 end

@@ -10,33 +10,4 @@ if AhpIpc.daemon_running?
   Kernel.exit 
 end
 AhpIpc.start_daemon!
-while ary = AhpIpc.get_command
-  cmd,path = *ary
-  case cmd.downcase
-  when 'pause'
-    unless AhpHash[path]
-      puts path + " isn't running"
-    else
-      puts "fake pause " + path
-    end
-  when 'stop'
-    unless AhpHash[path]
-      puts path + " isn't running"
-    else
-      puts "fake stop " + path
-    end
-  when 'start'
-    unless File.exists?(path)
-      puts path + " doesn't exist"
-    else
-      puts "fake start " + path
 
-    end
-  end 
-  puts [cmd,path].inspect
-end
-exit
-x = Ahp.new ARGV[0]
-t = x.run
-
-t.join
