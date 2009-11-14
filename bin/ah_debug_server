@@ -1,12 +1,13 @@
 #!/usr/bin/env ruby
 $:.unshift File.expand_path File.join(File.dirname(__FILE__),'../ruby')
+ENV['DEBUG']='true'
 require 'ahp'
 require 'ahp_ipc'
 
 Thread.abort_on_exception=true
 
 if AhpIpc.daemon_running?
-  STDERR.puts "Already a daemon running..."
+  STDERR.puts "Already a daemon(#{AhpIpc.pidfile.pid}) running..."
   Kernel.exit 
 end
 AhpIpc.start_daemon!
