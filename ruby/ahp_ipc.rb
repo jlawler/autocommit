@@ -20,6 +20,7 @@ class AhpIpc
     pidfile.running?
   end
   def self.start_daemon!
+    create_files!
     self.pidfile.pid=$$
     update_scoreboard_file
     self.start_loop!
@@ -27,7 +28,6 @@ class AhpIpc
   def self.start_loop!
 while ary = AhpIpc.get_command
   cmd,path = *ary
-  STDERR.puts "COMMAND = "+cmd
   case cmd.downcase
   when 'shutdown'
     Kernel.exit
@@ -58,43 +58,15 @@ while ary = AhpIpc.get_command
       next
     end
     Ahp.new(path).run
-    puts "fake start " + path
 
   end 
-  puts [cmd,path].inspect
 end
 end
-
-=begin
-    def Pid.running?(pid)
-      # Check if process is in existence
-      # The simplest way to do this is to send signal '0'
-      # (which is a single system call) that doesn't actually
-      # send a signal
-      begin
-        Process.kill(0, pid)
-        return true
-      rescue Errno::ESRCH
-        return false
-      rescue ::Exception   # for example on EPERM (process exists but does not belong to us)
-        return true
-      #rescue Errno::EPERM
-      #  return false
-      end
-    end
-
-
-  end
-=end
-#STDERR.puts history_dir.inspect
-#STDERR.puts control_path.inspect
-  def self.create_files
-    Dir.mkdir(history_dir) unless File.exists?(history_dir)
+  def self.create_files!
+    Dir.mkdir(AH_DIR) unless File.exists?(AH_DIR)
     unless File.exists?(control_path)
       `mkfifo #{control_path}`
     end  
-  end
-  def self.sanity_check!
     unless File.exists?(control_path)
       raise "Totally screwed!"
     end
