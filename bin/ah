@@ -10,6 +10,7 @@ path = ARGV[1]
 (ARGV.size==1 and argv_cmd!='shutdown') or AhpIpc.daemon_running? or 
   fork {AhpIpc.start_daemon!}
 
+error=nil
 if ARGV.size==1
   if argv_cmd=='status'
     msg=''
@@ -23,11 +24,9 @@ if ARGV.size==1
       end
       msg << ("%40s    " % dir_name) + time_blk
     end
-    puts msg
-    Kernel.exit!
+    error||=msg
   end
 end
-error=nil
 error||= "Usage : ah cmd dir" if ARGV.size < 2 and not argv_cmd=='shutdown'
 
 error||="Invalid command #{argv_cmd}" unless ['shutdown','start','stop','pause','create'].include? argv_cmd
