@@ -20,7 +20,7 @@ path = ARGV[1]
 if (ARGV.size==1 and ['shutdown','status'].include? argv_cmd) or  
 ARGV.size > 1 and 
 not AhpIpc.daemon_running?  
-    fork {AhpIpc.start_daemon!}
+  fork {AhpIpc.start_daemon!}
 end
 
 error=nil
