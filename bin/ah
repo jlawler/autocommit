@@ -6,6 +6,7 @@ THIS_FILE = begin
   end
   this_file
 end
+STDERR.puts "THISFILE = #{THIS_FILE}"
 $:.unshift File.expand_path File.join(File.dirname(THIS_FILE),'../ruby')
 require 'ahp'
 require 'ahp_ipc'
