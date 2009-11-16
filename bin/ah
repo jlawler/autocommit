@@ -2,11 +2,15 @@
 THIS_FILE = begin
   this_file = File.expand_path(__FILE__)
   while File.exists?(this_file) and File.symlink?(this_file)
-    this_file = File.expand_path(File.readlink(this_file))
+    if File.readlink(this_file).chars.first=='/'
+      this_file = File.readlink(this_file)
+    else
+      this_file = File.expand_path(File.join(File.dirname(this_file),File.readlink(this_file)))
+    end
   end
   this_file
 end
-STDERR.puts "THISFILE = #{THIS_FILE}"
+
 $:.unshift File.expand_path File.join(File.dirname(THIS_FILE),'../ruby')
 require 'ahp'
 require 'ahp_ipc'
