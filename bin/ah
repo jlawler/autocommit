@@ -17,9 +17,10 @@ require 'ahp_ipc'
 Thread.abort_on_exception=true
 argv_cmd = ARGV.first.downcase if ARGV.size > 0
 path = ARGV[1]
-
-(ARGV.size==1 and argv_cmd=='shutdown') or AhpIpc.daemon_running? or 
-  fork {AhpIpc.start_daemon!}
+if (ARGV.size==1 and ['shutdown','status'].include? argv_cmd) or  ARGV.size > 1 and 
+  not AhpIpc.daemon_running?  
+    fork {AhpIpc.start_daemon!}
+end
 
 error=nil
 if ARGV.size==1
