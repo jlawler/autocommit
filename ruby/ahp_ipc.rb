@@ -1,17 +1,12 @@
 require 'ahp_pidfile'
+require 'ahp_log'
 require 'yaml'
 
 class AhpIpc
   SCOREBOARD=Hash.new{|h,k|h[k]=Hash.new}
-  AH_DIR = File.join(ENV['HOME'],'.autocommit')
-  def self.pidfile_path
-    File.join(AH_DIR,'ahp.pid')
-  end
-  def self.scoreboard_path
-    File.join(AH_DIR,'scoreboard')
-  end
-  def self.control_path
-    File.join(AH_DIR,'control')
+  include AhpLog
+  class<<self
+    include AhpLog
   end
   def self.pidfile
     @@pidfile||=AhpPidFile.new(pidfile_path)
@@ -19,13 +14,26 @@ class AhpIpc
   def self.daemon_running?
     pidfile.running?
   end
+  def self.config
+    @@config||=YAML.load(File.read(AhpLog.config_file_path)) if File.exists? AhpLog.config_file_path
+    @@config||={}
+  end
   def self.start_daemon!
     create_files!
+    puts config
     self.pidfile.pid=$$
     update_scoreboard_file
     self.start_loop!
   end
   def self.start_loop!
+    if config and config['autostart']
+      [*config['autostart']].compact.each do |path|
+        debug "autostarting #{path}"
+        if File.exists?(path) and File.exists?(File.join(path,'.git'))
+          next Ahp.new(path).run
+        end
+      end
+    end
     while ary = AhpIpc.get_command
       cmd,path = *ary
       case cmd.downcase
@@ -45,7 +53,7 @@ class AhpIpc
     STDERR.puts "start_loop is about to exit!  get_command returned " + ary.inspect
   end
   def self.create_files!
-    Dir.mkdir(AH_DIR) unless File.exists?(AH_DIR) rescue nil
+    Dir.mkdir(ah_dir) unless File.exists?(ah_dir) rescue nil
     `mkfifo #{control_path}` unless File.exists?(control_path) rescue nil
     raise "Totally screwed!  Can't create the dirs/files I need! #{control_path}" unless File.exists?(control_path)
   end
@@ -74,23 +82,18 @@ class AhpIpc
     debug SCOREBOARD.inspect
     update_scoreboard_file
   end
-  def self.debug str
-   return unless ENV['DEBUG']
-   puts str
-  end
-
   def self.update_scoreboard_file
-    debug "WRITING SCOREBOARD " + self.scoreboard_path
-    File.open(self.scoreboard_path, File::WRONLY|File::TRUNC|File::CREAT){|fh|
+    debug "WRITING SCOREBOARD " + scoreboard_path
+    File.open(scoreboard_path, File::WRONLY|File::TRUNC|File::CREAT){|fh|
       fh.puts YAML::dump(SCOREBOARD)
     }
   end
   def self.read_scoreboard_file
     return {} unless self.daemon_running? 
-    return YAML::load(File.read(self.scoreboard_path)) rescue nil
+    return YAML::load(File.read(scoreboard_path)) rescue nil
     return {} 
-    debug "WRITING SCOREBOARD " + self.scoreboard_path
-    File.open(self.scoreboard_path, File::WRONLY|File::TRUNC|File::CREAT){|fh|
+    debug "WRITING SCOREBOARD " + scoreboard_path
+    File.open(scoreboard_path, File::WRONLY|File::TRUNC|File::CREAT){|fh|
       fh.puts YAML::dump(SCOREBOARD)
     }
   end

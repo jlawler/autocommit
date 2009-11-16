@@ -1,9 +1,10 @@
 require 'inotify'
 require 'find'
 require 'thread'
+require 'ahp_log'
 
-puts "DEBUGGING ENABLED" if ENV['DEBUG']
 class Ahp
+  include AhpLog
   MIN_TIME_BETWEEN_COMMITS = 10
   MAX_TIME_BETWEEN_COMMITS = 60
   @@all_ahps={}
@@ -68,11 +69,7 @@ class Ahp
       self.last_commit = Time.now.to_i  
       self.last_child = $?
       AhpIpc.add_stat(self.root_path,{'last_commit' => self.last_commit})
-      end
     end
-  def debug str
-    return unless ENV['DEBUG']
-    puts str
   end
   def add_watch e
     debug "add watch #{e}"
