@@ -28,6 +28,7 @@ class Ahp
   end
   def run
     @@all_ahps[self.root_path]=self
+    self.commit!
     AhpIpc.add_stat(self.root_path,{'start' => Time.now.to_i})
     Thread.new do
     	i.each_event do |ev|
