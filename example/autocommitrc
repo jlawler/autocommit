@@ -1,0 +1,6 @@
+#This is a sample config file.  It would have to live at
+#This config file is yaml...
+#~/.autocommit/autocommitrc
+autostart: 
+  - /home/jlawler/git/gnome_nova
+  - /home/jlawler/git/svg_pocs

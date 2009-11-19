@@ -6,7 +6,7 @@ module AhpLog
     AH_DIR
   end
   def config_file_path
-    File.join(AH_DIR,'.autocommitrc')
+    File.join(AH_DIR,'autocommitrc')
   end
   def debug_log_fh
     @@debug_log_fh||=begin
