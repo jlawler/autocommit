@@ -30,7 +30,6 @@ module AhpLog
     [*args].compact.each do |arg|
       AhpLog.error_log_fh.puts arg 
       AhpLog.debug_log_fh.puts arg if ENV['DEBUG'] rescue nil
-      STDERR.puts arg rescue nil 
     end
   end
   def debug_log_path

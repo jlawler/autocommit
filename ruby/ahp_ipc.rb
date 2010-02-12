@@ -20,7 +20,6 @@ class AhpIpc
   end
   def self.start_daemon!
     create_files!
-    puts config
     self.pidfile.pid=$$
     update_scoreboard_file
     self.start_loop!
@@ -97,4 +96,5 @@ class AhpIpc
       fh.puts YAML::dump(SCOREBOARD)
     }
   end
+  #Time.now.to_i - File.stat('/home/jlawler/x').mtime.to_i
 end
