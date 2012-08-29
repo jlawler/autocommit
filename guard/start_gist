@@ -1,3 +1,3 @@
 #!/usr/bin/env ruby
-a = %w(guard -w ~/gist -G) + [ File.expand_path("Guardfile",File.dirname(__FILE__))]
+a = %w(guard -w ~/gist -G) + [ File.expand_path("Guardfile",File.dirname(File.realpath(__FILE__)))]
 Kernel.exec *a
