@@ -1,0 +1,5 @@
+require './cgac.rb'
+guard 'cgautocommit' do 
+  watch(/^[^.]*/)
+end
+
