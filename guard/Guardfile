@@ -1,4 +1,4 @@
-require './cgac.rb'
+require File.expand_path('cgac.rb',File.dirname(__FILE__))
 guard 'cgautocommit' do 
   watch(/^[^.]*/)
 end
