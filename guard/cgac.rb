@@ -32,7 +32,7 @@ module ::Guard
       semaphore.synchronize do 
 
       `cd ~/gist && git add -A`
-      `cd ~/gist && git commit -a -m inc`
+      `cd ~/gist && git commit -a -m autocommit`
       `cd ~/gist && git push`
       STDERR.puts "COMMITING"
       end
